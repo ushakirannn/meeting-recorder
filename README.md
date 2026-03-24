@@ -8,28 +8,49 @@ Place your phone in the center of the meeting room, hit record, and get:
 - Key discussion points
 - Action items
 
+## Features
+
+- Start/stop meeting recording with a large animated button
+- AI-powered transcription with speaker diarization (AssemblyAI)
+- Meeting notes: summary, key points, action items, transcript
+- Audio playback for past recordings
+- Meeting history with rename and delete
+- Bottom tab navigation (Home, Meetings, Settings)
+- Modern UI with glassmorphism design
+
 ## Architecture
 
 ```
 Mobile App (Ionic Angular + Capacitor)
-  ↓ uploads audio
+  ↓ records audio, uploads to backend
 FastAPI Backend
   ↓
 AssemblyAI (transcription + speaker diarization)
   ↓
-Claude API (summarization)
+SQLite (meeting storage + audio files)
   ↓
 Structured JSON response → displayed in app
 ```
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Mobile App | Ionic 7 + Angular 19 + Capacitor 7 |
+| Backend | Python 3.11 + FastAPI |
+| AI Transcription | AssemblyAI (universal-3-pro) |
+| Database | SQLite |
+| Hosting | Railway |
 
 ## Prerequisites
 
 - Node.js 18+
 - Python 3.11+
+- Ionic CLI (`npm install -g @ionic/cli`)
 - Android Studio (for Android builds)
 - API Keys:
-  - [AssemblyAI](https://www.assemblyai.com/) - transcription + speaker diarization
-  - [Anthropic](https://console.anthropic.com/) - Claude API for summarization
+  - [AssemblyAI](https://www.assemblyai.com/) — transcription + speaker diarization (185 hours free)
+  - [Anthropic](https://console.anthropic.com/) — Claude API for summarization (optional)
 
 ## Setup & Run
 
@@ -37,7 +58,6 @@ Structured JSON response → displayed in app
 
 ```bash
 # Create and activate virtual environment
-cd "Meeting Recorder"
 python -m venv backend-venv
 
 # Windows
@@ -55,12 +75,12 @@ cp .env.example .env
 # Edit .env with your actual API keys
 
 # Run the server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --timeout-keep-alive 300
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8001 --timeout-keep-alive 300
 ```
 
-Test: `curl http://localhost:8000/health`
+Test: `curl http://localhost:8001/health`
 
-### Mobile App
+### Mobile App (Browser Testing)
 
 ```bash
 cd mobile-app
@@ -68,44 +88,85 @@ cd mobile-app
 # Install dependencies
 npm install
 
-# Run in browser (for testing)
+# Run in browser
 ionic serve
-
-# Build for Android
-ionic build
-npx cap sync android
-npx cap open android   # Opens in Android Studio
 ```
 
-### Testing on Android Device
+App opens at `http://localhost:8100`
+
+### Testing on Android Device (Local Backend)
 
 1. Connect your phone via USB with USB debugging enabled
-2. Run `adb reverse tcp:8000 tcp:8000` to tunnel backend
+2. Run `adb reverse tcp:8001 tcp:8001` to tunnel the backend
 3. Build and run from Android Studio
 
-### Build APK
+## Building the Android APK
+
+### Step 1: Build the web app
 
 ```bash
 cd mobile-app
-ionic build --prod
-npx cap sync android
-cd android
-.\gradlew assembleDebug
+
+# Remove old build artifacts
+Remove-Item -Recurse -Force www    # PowerShell
+# or: rm -rf www                   # Bash
+
+# Build the production web app
+npm run build
 ```
 
-APK location: `android/app/build/outputs/apk/debug/app-debug.apk`
+### Step 2: Sync with Android
 
-## API
+```bash
+npx cap sync android
+npx cap copy android
+```
+
+### Step 3: Open in Android Studio
+
+```bash
+npx cap open android
+```
+
+### Step 4: Build in Android Studio
+
+1. Wait for **Gradle sync** to complete (progress bar at bottom)
+2. **Build → Clean Project**
+3. **Build → Rebuild Project**
+4. **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+
+The debug APK will be generated at:
+```
+mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+You can install this APK directly on any Android device by transferring the file and opening it.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/upload-audio` | Upload audio, returns transcription + notes |
+| GET | `/meetings` | List all saved meetings |
+| GET | `/meetings/:id` | Get a single meeting |
+| PATCH | `/meetings/:id` | Rename a meeting |
+| DELETE | `/meetings/:id` | Delete a meeting + audio file |
+| GET | `/recordings/:id` | Stream audio recording for a meeting |
 
 ### POST /upload-audio
 
 Upload meeting audio and receive structured notes.
 
-**Request:** multipart/form-data with `file` field (WAV, M4A, OGG, WEBM, MP3)
+**Request:** `multipart/form-data`
+- `file` — audio file (WAV, M4A, OGG, WEBM, MP3, AAC, FLAC)
+- `duration_seconds` — recording duration in seconds
 
 **Response:**
 ```json
 {
+  "id": 1,
+  "title": "Meeting — Mar 24, 2026 11:30 AM",
   "summary": "Discussion about dashboard improvements...",
   "key_points": ["dashboard performance issues identified", "deployment planned next week"],
   "action_items": ["Usha: benchmark dashboard performance"],
@@ -113,19 +174,66 @@ Upload meeting audio and receive structured notes.
 }
 ```
 
-### GET /health
-
-Returns `{"status": "ok"}`
-
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `ASSEMBLYAI_API_KEY` | AssemblyAI API key for transcription + diarization |
-| `ANTHROPIC_API_KEY` | Anthropic API key for Claude summarization |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ASSEMBLYAI_API_KEY` | Yes | AssemblyAI API key for transcription + diarization |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key for Claude summarization (coming soon) |
 
-## Tech Stack
+## Deployment
 
-- **Mobile:** Ionic 7 + Angular 19 + Capacitor 7
-- **Backend:** Python 3.11 + FastAPI
-- **AI:** AssemblyAI (transcription + diarization) + Claude API (summarization)
+### Backend (Railway)
+
+The backend is deployed on Railway:
+- Install Railway CLI: `npm install -g @railway/cli`
+- Login: `railway login`
+- Deploy: `cd backend && railway up`
+- Set env vars in Railway dashboard: `ASSEMBLYAI_API_KEY`
+- Generate domain: `railway domain`
+
+### Mobile App
+
+Update the production API URL in `mobile-app/src/environments/environment.prod.ts` with your Railway URL, then build the APK following the steps above.
+
+## Project Structure
+
+```
+Meeting Recorder/
+├── backend/
+│   ├── app/
+│   │   ├── main.py                 # FastAPI app, CORS, exception handler
+│   │   ├── config.py               # Environment settings
+│   │   ├── routes/
+│   │   │   ├── audio.py            # POST /upload-audio, GET /recordings/:id
+│   │   │   └── meetings.py         # CRUD for meetings
+│   │   ├── services/
+│   │   │   ├── transcription.py    # AssemblyAI integration
+│   │   │   ├── summary.py          # Claude API integration
+│   │   │   └── database.py         # SQLite operations
+│   │   └── models/
+│   │       └── meeting.py          # Pydantic models
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env.example
+├── mobile-app/
+│   ├── src/app/
+│   │   ├── pages/
+│   │   │   ├── recording/          # Home screen — start/stop recording
+│   │   │   ├── processing/         # Processing animation screen
+│   │   │   ├── results/            # Meeting notes display
+│   │   │   ├── meetings/           # Meeting history list
+│   │   │   └── settings/           # App settings
+│   │   ├── services/
+│   │   │   ├── recording.service   # Mic recording + timer
+│   │   │   ├── api.service         # Backend HTTP calls
+│   │   │   └── meeting-state       # Shared state between pages
+│   │   └── tabs/                   # Bottom tab navigation
+│   ├── capacitor.config.ts
+│   └── package.json
+└── README.md
+```
+
+## License
+
+MIT
