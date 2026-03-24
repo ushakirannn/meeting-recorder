@@ -25,3 +25,4 @@ mobile-app/ios/
 # OS
 .DS_Store
 Thumbs.db
+.claude/
