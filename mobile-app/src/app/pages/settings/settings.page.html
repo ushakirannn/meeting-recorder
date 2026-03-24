@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="header-title font-headline">Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-container">
+    <section class="welcome-section">
+      <p class="label-text">CONFIGURATION</p>
+      <h2 class="headline font-headline">App Settings</h2>
+    </section>
+
+    <!-- About section -->
+    <div class="settings-group">
+      <h3 class="group-title font-headline">About</h3>
+
+      <div class="settings-card">
+        <div class="setting-row">
+          <div class="setting-icon-box">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">info</span>
+          </div>
+          <div class="setting-content">
+            <span class="setting-label">App Version</span>
+            <span class="setting-value">{{ appVersion }}</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-icon-box">
+            <span class="material-symbols-outlined">dns</span>
+          </div>
+          <div class="setting-content">
+            <span class="setting-label">API Server</span>
+            <span class="setting-value">{{ apiUrl }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Features -->
+    <div class="settings-group">
+      <h3 class="group-title font-headline">AI Features</h3>
+
+      <div class="settings-card">
+        <div class="setting-row">
+          <div class="setting-icon-box accent">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+          </div>
+          <div class="setting-content">
+            <span class="setting-label">Speaker Diarization</span>
+            <span class="setting-badge enabled">Enabled</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-icon-box accent">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          </div>
+          <div class="setting-content">
+            <span class="setting-label">AI Summarization</span>
+            <span class="setting-badge disabled">Coming Soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credits -->
+    <div class="credits">
+      <p>Built with Ionic + FastAPI + AssemblyAI</p>
+    </div>
+  </div>
+</ion-content>

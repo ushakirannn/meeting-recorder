@@ -1,0 +1,244 @@
+.page-container {
+  padding: 24px 20px 40px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+// Header title
+.header-title {
+  font-weight: 800;
+  color: #4e45e4;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+// Welcome
+.welcome-section {
+  margin-bottom: 32px;
+}
+
+.label-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555f73;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.headline {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #283345;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+// Recording header
+.recording-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.recording-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse-dot 1s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.timer {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #283345;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+// Central action
+.action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0 24px;
+}
+
+.button-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(78, 69, 228, 0.12);
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+.pulse-ring-recording {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  animation: pulse-scale 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.12); opacity: 0.15; }
+}
+
+.action-button {
+  position: relative;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 20px 60px -12px rgba(78, 69, 228, 0.35);
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.start-button {
+  background: linear-gradient(135deg, #4e45e4 0%, #6760fd 100%);
+}
+
+.stop-button {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 20px 60px -12px rgba(239, 68, 68, 0.35);
+}
+
+.icon-circle,
+.icon-circle-stop {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.mic-icon,
+.stop-icon {
+  font-size: 36px;
+  color: white;
+}
+
+.button-label {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.hint-text {
+  font-size: 0.85rem;
+  color: #555f73;
+  font-weight: 500;
+  text-align: center;
+}
+
+// Status section
+.status-section {
+  margin-top: 16px;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 12px;
+}
+
+.status-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #283345;
+}
+
+.ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.ready-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f0f3ff;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.status-icon-box {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  background: #e3e0f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #515064;
+}
+
+.status-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #283345;
+  margin-bottom: 2px;
+}
+
+.status-card-desc {
+  font-size: 0.8rem;
+  color: #555f73;
+}

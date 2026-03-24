@@ -1,0 +1,70 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="header-title font-headline">Meetings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-container">
+    <section class="welcome-section">
+      <p class="label-text">MEETING HISTORY</p>
+      <h2 class="headline font-headline">Your past meetings</h2>
+    </section>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="loading">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" *ngIf="!loading && error">
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadMeetings()">Retry</button>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!loading && !error && meetings.length === 0">
+      <div class="empty-icon-circle">
+        <span class="material-symbols-outlined empty-icon">folder_open</span>
+      </div>
+      <h3 class="empty-title font-headline">No meetings yet</h3>
+      <p class="empty-desc">Your recorded meetings will appear here. Start your first meeting from the Home tab.</p>
+    </div>
+
+    <!-- Meeting list -->
+    <div class="meeting-list" *ngIf="!loading && meetings.length > 0">
+      <div class="meeting-card" *ngFor="let meeting of meetings" (click)="viewMeeting(meeting)">
+        <div class="meeting-card-top">
+          <div class="meeting-icon-box">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+          </div>
+          <div class="meeting-info">
+            <h4 class="meeting-title font-headline">{{ meeting.title }}</h4>
+            <p class="meeting-date">{{ formatDate(meeting.created_at) }}</p>
+          </div>
+          <button class="action-btn rename-btn" (click)="renameMeeting(meeting, $event)">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button class="action-btn delete-btn" (click)="confirmDelete(meeting, $event)">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+        <p class="meeting-summary">{{ meeting.summary }}</p>
+        <div class="meeting-meta">
+          <span class="meta-chip" *ngIf="meeting.duration_seconds > 0">
+            <span class="material-symbols-outlined meta-icon">timer</span>
+            {{ formatDuration(meeting.duration_seconds) }}
+          </span>
+          <span class="meta-chip">
+            <span class="material-symbols-outlined meta-icon">lightbulb</span>
+            {{ meeting.key_points.length }} points
+          </span>
+          <span class="meta-chip">
+            <span class="material-symbols-outlined meta-icon">task_alt</span>
+            {{ meeting.action_items.length }} actions
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

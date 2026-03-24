@@ -1,0 +1,77 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="header-title font-headline">Meeting Recorder</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-container">
+
+    <!-- Welcome Section (idle only) -->
+    <section class="welcome-section" *ngIf="!recordingService.isRecording">
+      <p class="label-text">MEETING RECORDER</p>
+      <h2 class="headline font-headline">Ready to capture insights?</h2>
+    </section>
+
+    <!-- Recording Header -->
+    <section class="recording-header" *ngIf="recordingService.isRecording">
+      <div class="recording-badge">
+        <span class="rec-dot"></span>
+        <span>Recording</span>
+      </div>
+      <div class="timer font-headline">
+        {{ recordingService.formatTime(recordingService.elapsedSeconds) }}
+      </div>
+    </section>
+
+    <!-- Central Action Button -->
+    <section class="action-section">
+      <div class="button-wrapper">
+        <!-- Pulse ring (idle) -->
+        <div class="pulse-ring" *ngIf="!recordingService.isRecording"></div>
+        <!-- Pulse ring (recording - red) -->
+        <div class="pulse-ring-recording" *ngIf="recordingService.isRecording"></div>
+
+        <!-- Start Button -->
+        <button class="action-button start-button" *ngIf="!recordingService.isRecording" (click)="startRecording()">
+          <div class="icon-circle">
+            <span class="material-symbols-outlined mic-icon" style="font-variation-settings: 'FILL' 1;">mic</span>
+          </div>
+          <span class="button-label font-headline">Start Meeting</span>
+        </button>
+
+        <!-- Stop Button -->
+        <button class="action-button stop-button" *ngIf="recordingService.isRecording" (click)="stopRecording()">
+          <div class="icon-circle-stop">
+            <span class="material-symbols-outlined stop-icon" style="font-variation-settings: 'FILL' 1;">stop</span>
+          </div>
+          <span class="button-label font-headline">Stop Meeting</span>
+        </button>
+      </div>
+
+      <p class="hint-text" *ngIf="!recordingService.isRecording">Tap to begin high-fidelity transcription</p>
+      <p class="hint-text" *ngIf="recordingService.isRecording">Tap to stop and process your meeting</p>
+    </section>
+
+    <!-- System Status (idle only) -->
+    <section class="status-section" *ngIf="!recordingService.isRecording">
+      <div class="status-header">
+        <h3 class="status-title font-headline">System Status</h3>
+        <span class="ready-badge">
+          <span class="ready-dot"></span>
+          Ready
+        </span>
+      </div>
+      <div class="status-card">
+        <div class="status-icon-box">
+          <span class="material-symbols-outlined">auto_awesome</span>
+        </div>
+        <div>
+          <h4 class="status-card-title font-headline">AI Transcription Active</h4>
+          <p class="status-card-desc">Speaker diarization and noise reduction enabled.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</ion-content>

@@ -1,0 +1,27 @@
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/temp_uploads/
+backend/recordings/
+backend/meetings.db
+
+# Virtual environment
+backend-venv/
+
+# Mobile
+mobile-app/node_modules/
+mobile-app/www/
+mobile-app/.angular/
+mobile-app/android/
+mobile-app/ios/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

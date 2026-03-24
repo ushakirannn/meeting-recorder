@@ -1,0 +1,251 @@
+.back-btn {
+  --color: #4e45e4;
+  --icon-font-size: 24px;
+  --padding-start: 4px;
+}
+
+.page-container {
+  padding: 8px 20px 40px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.label-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555f73;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headline {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #283345;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.rename-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: #eef2ff;
+  color: #4e45e4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+
+  &:active {
+    transform: scale(0.93);
+  }
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}
+
+// Audio player
+.audio-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.audio-player {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+}
+
+// Success badge
+.success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.badge-icon {
+  font-size: 18px;
+}
+
+// Cards
+.result-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-icon-box {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.summary-icon {
+  background: #eef2ff;
+  color: #4e45e4;
+}
+
+.points-icon {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.actions-icon {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.transcript-icon {
+  background: #e3e0f9;
+  color: #515064;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #283345;
+}
+
+.card-body {
+  font-size: 0.9rem;
+  color: #555f73;
+  line-height: 1.6;
+}
+
+// Points list
+.points-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.point-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 0.88rem;
+  color: #283345;
+  line-height: 1.5;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f0f3ff;
+  }
+}
+
+.point-check {
+  font-size: 18px;
+  color: #10b981;
+  margin-top: 2px;
+}
+
+.action-arrow {
+  font-size: 18px;
+  color: #4e45e4;
+  margin-top: 2px;
+}
+
+.no-items-text {
+  font-size: 0.85rem;
+  color: #707b90;
+}
+
+// Transcript collapsible
+.transcript-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.transcript-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.chevron {
+  color: #707b90;
+  transition: transform 0.3s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.transcript-body {
+  padding: 0 20px 20px;
+  border-top: 1px solid #f0f3ff;
+
+  p {
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    color: #555f73;
+    line-height: 1.7;
+    padding-top: 16px;
+  }
+}
+
+// New meeting button
+.new-meeting-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #4e45e4 0%, #6760fd 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(78, 69, 228, 0.3);
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}

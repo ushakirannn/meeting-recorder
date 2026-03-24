@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button class="back-btn" routerLink="/tabs/meetings" routerDirection="back">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-container" *ngIf="result">
+
+    <!-- Page heading with editable title -->
+    <section class="page-header">
+      <p class="label-text">MEETING NOTES</p>
+      <div class="title-row">
+        <h2 class="headline font-headline">{{ result.title || 'Meeting Summary' }}</h2>
+        <button class="rename-btn" (click)="renameMeeting()" *ngIf="result.id">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Success badge -->
+    <div class="success-badge">
+      <span class="material-symbols-outlined badge-icon" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+      <span>Meeting processed successfully</span>
+    </div>
+
+    <!-- Audio Player -->
+    <div class="result-card audio-card" *ngIf="audioUrl">
+      <div class="card-header">
+        <div class="card-icon-box audio-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">headphones</span>
+        </div>
+        <h3 class="card-title font-headline">Recording</h3>
+      </div>
+      <audio controls [src]="audioUrl" class="audio-player"></audio>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="result-card">
+      <div class="card-header">
+        <div class="card-icon-box summary-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">summarize</span>
+        </div>
+        <h3 class="card-title font-headline">Summary</h3>
+      </div>
+      <p class="card-body">{{ result.summary }}</p>
+    </div>
+
+    <!-- Key Points Card -->
+    <div class="result-card">
+      <div class="card-header">
+        <div class="card-icon-box points-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+        </div>
+        <h3 class="card-title font-headline">Key Discussion Points</h3>
+      </div>
+      <ul class="points-list">
+        <li *ngFor="let point of result.key_points" class="point-item">
+          <span class="material-symbols-outlined point-check">check_circle</span>
+          <span>{{ point }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Action Items Card -->
+    <div class="result-card">
+      <div class="card-header">
+        <div class="card-icon-box actions-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+        </div>
+        <h3 class="card-title font-headline">Action Items</h3>
+      </div>
+      <ul class="points-list" *ngIf="result.action_items?.length; else noActions">
+        <li *ngFor="let action of result.action_items" class="point-item">
+          <span class="material-symbols-outlined action-arrow">arrow_forward</span>
+          <span>{{ action }}</span>
+        </li>
+      </ul>
+      <ng-template #noActions>
+        <p class="no-items-text">No action items identified.</p>
+      </ng-template>
+    </div>
+
+    <!-- Transcript (collapsible) -->
+    <div class="result-card transcript-card">
+      <button class="transcript-toggle" (click)="transcriptOpen = !transcriptOpen">
+        <div class="card-header" style="margin-bottom: 0;">
+          <div class="card-icon-box transcript-icon">
+            <span class="material-symbols-outlined">description</span>
+          </div>
+          <h3 class="card-title font-headline">Transcript</h3>
+        </div>
+        <span class="material-symbols-outlined chevron" [class.open]="transcriptOpen">expand_more</span>
+      </button>
+      <div class="transcript-body" *ngIf="transcriptOpen">
+        <p>{{ result.transcript }}</p>
+      </div>
+    </div>
+
+    <!-- New Meeting Button -->
+    <button class="new-meeting-btn" (click)="newMeeting()">
+      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+      <span class="font-headline">New Meeting</span>
+    </button>
+
+  </div>
+</ion-content>

@@ -1,0 +1,46 @@
+:host {
+  ion-tab-bar {
+    --background: rgba(255, 255, 255, 0.8);
+    --border: none;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    border-radius: 3rem 3rem 0 0;
+    padding: 16px 16px calc(env(safe-area-inset-bottom, 8px) + 24px);
+    justify-content: space-around;
+  }
+
+  ion-tab-button {
+    --color: #94a3b8;
+    --color-selected: #4338ca;
+    --ripple-color: transparent;
+    --background: transparent;
+    --background-focused: transparent;
+    --padding-start: 24px;
+    --padding-end: 24px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    max-width: none;
+    border-radius: 9999px;
+    transition: all 0.3s ease-out;
+    transform: scale(0.9);
+  }
+
+  ion-tab-button.tab-selected {
+    --color: #4338ca;
+    --background: rgba(224, 231, 255, 0.6);
+    transform: scale(0.9);
+  }
+
+  .tab-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .tab-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+}
