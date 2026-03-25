@@ -98,6 +98,55 @@
   100% { width: 10%; margin-left: 90%; }
 }
 
+// Steps
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 24px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.35;
+  transition: opacity 0.3s;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &.done .step-icon {
+    color: #10b981;
+  }
+}
+
+.step-icon {
+  font-size: 24px;
+  color: #4e45e4;
+}
+
+.step-text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #555f73;
+}
+
+.step-line {
+  width: 32px;
+  height: 2px;
+  background: #e3e0f9;
+  margin: 0 8px;
+  margin-bottom: 22px;
+  transition: background 0.3s;
+
+  &.done {
+    background: #10b981;
+  }
+}
+
 .processing-hint {
   font-size: 0.78rem;
   color: #707b90;

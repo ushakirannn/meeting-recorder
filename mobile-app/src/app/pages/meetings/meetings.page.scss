@@ -31,6 +31,131 @@
   line-height: 1.2;
 }
 
+// Search bar
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.search-icon {
+  font-size: 20px;
+  color: #a7b2c9;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.88rem;
+  font-family: 'Inter', sans-serif;
+  color: #283345;
+  background: transparent;
+
+  &::placeholder {
+    color: #a7b2c9;
+  }
+}
+
+.filter-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: #f0f3ff;
+  color: #707b90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &.active {
+    background: #4e45e4;
+    color: white;
+  }
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}
+
+// Filters
+.filters-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  &:last-of-type {
+    margin-bottom: 8px;
+  }
+}
+
+.filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555f73;
+  min-width: 40px;
+}
+
+.filter-input {
+  flex: 1;
+  border: 1px solid #e3e0f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-family: 'Inter', sans-serif;
+  color: #283345;
+  outline: none;
+  background: #f9f9ff;
+
+  &:focus {
+    border-color: #4e45e4;
+  }
+}
+
+.clear-filters-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: #fef2f2;
+  color: #ef4444;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+// Tags
+.tags-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tag-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #4e45e4;
+  background: #eef2ff;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
 // Loading
 .loading-state {
   display: flex;

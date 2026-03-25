@@ -85,7 +85,27 @@
       </ng-template>
     </div>
 
-    <!-- Transcript (collapsible) -->
+    <!-- Tags -->
+    <div class="result-card tags-card" *ngIf="result.id">
+      <div class="card-header">
+        <div class="card-icon-box tags-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">label</span>
+        </div>
+        <h3 class="card-title font-headline">Tags</h3>
+        <button class="add-tag-btn" (click)="addTag()">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+      <div class="tags-row" *ngIf="tags.length > 0">
+        <span class="tag-chip" *ngFor="let tag of tags">
+          {{ tag }}
+          <span class="material-symbols-outlined tag-remove" (click)="removeTag(tag)">close</span>
+        </span>
+      </div>
+      <p class="no-items-text" *ngIf="tags.length === 0">No tags. Tap + to add.</p>
+    </div>
+
+    <!-- Transcript (collapsible with speaker rename) -->
     <div class="result-card transcript-card">
       <button class="transcript-toggle" (click)="transcriptOpen = !transcriptOpen">
         <div class="card-header" style="margin-bottom: 0;">
@@ -97,15 +117,33 @@
         <span class="material-symbols-outlined chevron" [class.open]="transcriptOpen">expand_more</span>
       </button>
       <div class="transcript-body" *ngIf="transcriptOpen">
-        <p>{{ result.transcript }}</p>
+        <!-- Speaker rename hint -->
+        <div class="speaker-hint" *ngIf="speakers.length > 0">
+          <span class="material-symbols-outlined hint-icon">person</span>
+          <span>Tap a speaker name to rename</span>
+        </div>
+        <!-- Speaker chips -->
+        <div class="speaker-chips" *ngIf="speakers.length > 0">
+          <button class="speaker-chip" *ngFor="let s of speakers" (click)="renameSpeaker(s)">
+            {{ speakerMap[s] || s }}
+            <span class="material-symbols-outlined chip-edit">edit</span>
+          </button>
+        </div>
+        <p class="transcript-text">{{ getDisplayTranscript() }}</p>
       </div>
     </div>
 
-    <!-- New Meeting Button -->
-    <button class="new-meeting-btn" (click)="newMeeting()">
-      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
-      <span class="font-headline">New Meeting</span>
-    </button>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="share-btn" (click)="shareMeeting()">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">share</span>
+        <span class="font-headline">Share Notes</span>
+      </button>
+      <button class="new-meeting-btn" (click)="newMeeting()">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+        <span class="font-headline">New Meeting</span>
+      </button>
+    </div>
 
   </div>
 </ion-content>

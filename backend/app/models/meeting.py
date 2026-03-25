@@ -19,4 +19,6 @@ class MeetingRecord(BaseModel):
     transcript: str
     duration_seconds: int
     audio_filename: str | None = None
+    tags: list[str] = []
+    speaker_map: dict = {}
     created_at: str

@@ -9,19 +9,31 @@
     <div class="orb-wrapper">
       <div class="orb-pulse"></div>
       <div class="orb">
-        <span class="material-symbols-outlined orb-icon" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        <span class="material-symbols-outlined orb-icon" style="font-variation-settings: 'FILL' 1;">{{ statusIcon }}</span>
       </div>
     </div>
 
-    <h2 class="processing-title font-headline">Processing meeting...</h2>
-    <p class="processing-subtitle">AI is transcribing and identifying speakers.</p>
+    <h2 class="processing-title font-headline">{{ statusTitle }}</h2>
+    <p class="processing-subtitle">{{ statusMessage }}</p>
 
-    <div class="progress-bar-wrapper">
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill"></div>
+    <!-- Step indicators -->
+    <div class="steps">
+      <div class="step" [class.active]="currentStep >= 1" [class.done]="currentStep > 1">
+        <span class="material-symbols-outlined step-icon">{{ currentStep > 1 ? 'check_circle' : 'cloud_upload' }}</span>
+        <span class="step-text">Uploading</span>
+      </div>
+      <div class="step-line" [class.done]="currentStep > 1"></div>
+      <div class="step" [class.active]="currentStep >= 2" [class.done]="currentStep > 2">
+        <span class="material-symbols-outlined step-icon">{{ currentStep > 2 ? 'check_circle' : 'mic' }}</span>
+        <span class="step-text">Transcribing</span>
+      </div>
+      <div class="step-line" [class.done]="currentStep > 2"></div>
+      <div class="step" [class.active]="currentStep >= 3" [class.done]="currentStep > 3">
+        <span class="material-symbols-outlined step-icon">{{ currentStep > 3 ? 'check_circle' : 'auto_awesome' }}</span>
+        <span class="step-text">Analyzing</span>
       </div>
     </div>
 
-    <p class="processing-hint">This may take 30-120 seconds depending on meeting length.</p>
+    <p class="processing-hint">{{ elapsedTime }}s elapsed</p>
   </div>
 </ion-content>

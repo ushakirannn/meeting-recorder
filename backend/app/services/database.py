@@ -23,14 +23,20 @@ def init_db():
             transcript TEXT NOT NULL,
             duration_seconds INTEGER NOT NULL DEFAULT 0,
             audio_filename TEXT,
+            tags TEXT DEFAULT '[]',
+            speaker_map TEXT DEFAULT '{}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # Add audio_filename column if table already exists without it
-    try:
-        conn.execute("ALTER TABLE meetings ADD COLUMN audio_filename TEXT")
-    except sqlite3.OperationalError:
-        pass  # column already exists
+    # Add columns if table already exists without them
+    for col, default in [("audio_filename", None), ("tags", "'[]'"), ("speaker_map", "'{}'")]:
+        try:
+            if default:
+                conn.execute(f"ALTER TABLE meetings ADD COLUMN {col} TEXT DEFAULT {default}")
+            else:
+                conn.execute(f"ALTER TABLE meetings ADD COLUMN {col} TEXT")
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     conn.close()
 
@@ -46,10 +52,12 @@ def _row_to_dict(row) -> dict:
         "duration_seconds": row["duration_seconds"],
         "created_at": row["created_at"],
     }
-    try:
-        d["audio_filename"] = row["audio_filename"]
-    except (IndexError, KeyError):
-        d["audio_filename"] = None
+    for col, default in [("audio_filename", None), ("tags", "[]"), ("speaker_map", "{}")]:
+        try:
+            val = row[col]
+            d[col] = json.loads(val) if col in ("tags", "speaker_map") and val else val if col == "audio_filename" else json.loads(default)
+        except (IndexError, KeyError):
+            d[col] = json.loads(default) if col in ("tags", "speaker_map") else None
     return d
 
 
@@ -69,11 +77,30 @@ def save_meeting(title: str, summary: str, key_points: list[str],
     return meeting_id
 
 
-def get_all_meetings() -> list[dict]:
+def get_all_meetings(search: str = None, date_from: str = None, date_to: str = None, tag: str = None) -> list[dict]:
     conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM meetings ORDER BY created_at DESC"
-    ).fetchall()
+    query = "SELECT * FROM meetings WHERE 1=1"
+    params = []
+
+    if search:
+        query += " AND (title LIKE ? OR summary LIKE ? OR transcript LIKE ?)"
+        like = f"%{search}%"
+        params.extend([like, like, like])
+
+    if date_from:
+        query += " AND created_at >= ?"
+        params.append(date_from)
+
+    if date_to:
+        query += " AND created_at <= ?"
+        params.append(date_to + " 23:59:59")
+
+    if tag:
+        query += " AND tags LIKE ?"
+        params.append(f'%"{tag}"%')
+
+    query += " ORDER BY created_at DESC"
+    rows = conn.execute(query, params).fetchall()
     conn.close()
     return [_row_to_dict(row) for row in rows]
 
@@ -100,16 +127,36 @@ def rename_meeting(meeting_id: int, title: str) -> bool:
     return updated
 
 
+def update_tags(meeting_id: int, tags: list[str]) -> bool:
+    conn = get_db()
+    cursor = conn.execute(
+        "UPDATE meetings SET tags = ? WHERE id = ?", (json.dumps(tags), meeting_id)
+    )
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
+
+
+def update_speaker_map(meeting_id: int, speaker_map: dict) -> bool:
+    conn = get_db()
+    cursor = conn.execute(
+        "UPDATE meetings SET speaker_map = ? WHERE id = ?", (json.dumps(speaker_map), meeting_id)
+    )
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
+
+
 def delete_meeting(meeting_id: int) -> bool:
     conn = get_db()
-    # Get audio filename before deleting
     row = conn.execute("SELECT audio_filename FROM meetings WHERE id = ?", (meeting_id,)).fetchone()
     cursor = conn.execute("DELETE FROM meetings WHERE id = ?", (meeting_id,))
     conn.commit()
     deleted = cursor.rowcount > 0
     conn.close()
 
-    # Delete audio file if exists
     if deleted and row and row["audio_filename"]:
         audio_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),

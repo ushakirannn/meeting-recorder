@@ -11,6 +11,7 @@ import { MeetingStateService } from '../../services/meeting-state.service';
   standalone: false,
 })
 export class RecordingPage {
+  isProcessing = false;
 
   constructor(
     public recordingService: RecordingService,
@@ -20,50 +21,69 @@ export class RecordingPage {
   ) {}
 
   async startRecording(): Promise<void> {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
     try {
       this.meetingState.clear();
       await this.recordingService.startRecording();
     } catch (error: any) {
+      const msg = error.message || 'Could not start recording.';
+      const isPermission = msg.toLowerCase().includes('permission');
+
       const alert = await this.alertCtrl.create({
-        header: 'Recording Error',
-        message: error.message || 'Could not start recording. Please allow microphone access.',
+        header: isPermission ? 'Microphone Access Required' : 'Recording Error',
+        message: isPermission
+          ? 'Please allow microphone access in your device settings to record meetings.'
+          : msg,
         buttons: ['OK'],
       });
       await alert.present();
+    } finally {
+      this.isProcessing = false;
     }
   }
 
   async stopRecording(): Promise<void> {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
     try {
       const result = await this.recordingService.stopRecording();
 
-      // Convert base64 audio to Blob
       const mimeType = result.value.mimeType;
       const base64Data = result.value.recordDataBase64;
-      const blob = this.base64ToBlob(base64Data || '', mimeType || 'audio/wav');
 
-      // Generate filename with timestamp
+      if (!base64Data) {
+        throw new Error('No audio data captured. Please try recording again.');
+      }
+
+      const blob = this.base64ToBlob(base64Data, mimeType || 'audio/wav');
+
+      // Check if audio is too small (likely empty/corrupt)
+      if (blob.size < 1000) {
+        throw new Error('Recording appears to be empty. Please try again and speak clearly.');
+      }
+
       const now = new Date();
       const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const ext = this.getExtension(mimeType);
       const filename = `meeting-${timestamp}${ext}`;
 
-      // Store in shared state
       this.meetingState.audioBlob = blob;
       this.meetingState.audioFilename = filename;
       this.meetingState.durationSeconds = this.recordingService.elapsedSeconds;
 
-      console.log('Recording stopped:', { mimeType, blobSize: blob.size, filename });
-
-      // Navigate to processing page
       this.router.navigate(['/processing']);
     } catch (error: any) {
       const alert = await this.alertCtrl.create({
-        header: 'Error',
-        message: error.message || 'Could not stop recording.',
+        header: 'Recording Error',
+        message: error.message || 'Could not process the recording. Please try again.',
         buttons: ['OK'],
       });
       await alert.present();
+    } finally {
+      this.isProcessing = false;
     }
   }
 

@@ -15,6 +15,15 @@ export class MeetingsPage implements ViewWillEnter {
   loading = true;
   error = '';
 
+  searchQuery = '';
+  dateFrom = '';
+  dateTo = '';
+  filterTag = '';
+  showFilters = false;
+  allTags: string[] = [];
+
+  private searchTimeout: any;
+
   constructor(
     private apiService: ApiService,
     private meetingState: MeetingStateService,
@@ -26,11 +35,37 @@ export class MeetingsPage implements ViewWillEnter {
     this.loadMeetings();
   }
 
+  get hasActiveFilters(): boolean {
+    return !!(this.dateFrom || this.dateTo || this.filterTag);
+  }
+
+  onSearch(): void {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => this.loadMeetings(), 300);
+  }
+
+  clearFilters(): void {
+    this.dateFrom = '';
+    this.dateTo = '';
+    this.filterTag = '';
+    this.searchQuery = '';
+    this.loadMeetings();
+  }
+
   async loadMeetings(): Promise<void> {
     this.loading = true;
     this.error = '';
     try {
-      this.meetings = await this.apiService.getMeetings();
+      this.meetings = await this.apiService.getMeetings({
+        search: this.searchQuery || undefined,
+        date_from: this.dateFrom || undefined,
+        date_to: this.dateTo || undefined,
+        tag: this.filterTag || undefined,
+      });
+      // Collect all unique tags
+      const tagSet = new Set<string>();
+      this.meetings.forEach(m => m.tags?.forEach(t => tagSet.add(t)));
+      this.allTags = Array.from(tagSet).sort();
     } catch (e) {
       this.error = 'Could not load meetings.';
     } finally {
@@ -47,6 +82,8 @@ export class MeetingsPage implements ViewWillEnter {
       action_items: meeting.action_items,
       transcript: meeting.transcript,
       hasAudio: !!meeting.audio_filename,
+      tags: meeting.tags,
+      speaker_map: meeting.speaker_map,
     };
     this.router.navigate(['/results']);
   }
@@ -55,14 +92,7 @@ export class MeetingsPage implements ViewWillEnter {
     event.stopPropagation();
     const alert = await this.alertCtrl.create({
       header: 'Rename Meeting',
-      inputs: [
-        {
-          name: 'title',
-          type: 'text',
-          value: meeting.title,
-          placeholder: 'Meeting name',
-        },
-      ],
+      inputs: [{ name: 'title', type: 'text', value: meeting.title, placeholder: 'Meeting name' }],
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         {
@@ -73,9 +103,7 @@ export class MeetingsPage implements ViewWillEnter {
               try {
                 await this.apiService.renameMeeting(meeting.id, newTitle);
                 meeting.title = newTitle;
-              } catch (e) {
-                // silent fail
-              }
+              } catch (e) { /* silent */ }
             }
           },
         },
@@ -105,9 +133,7 @@ export class MeetingsPage implements ViewWillEnter {
     try {
       await this.apiService.deleteMeeting(id);
       this.meetings = this.meetings.filter(m => m.id !== id);
-    } catch (e) {
-      // silent fail
-    }
+    } catch (e) { /* silent */ }
   }
 
   formatDuration(seconds: number): string {

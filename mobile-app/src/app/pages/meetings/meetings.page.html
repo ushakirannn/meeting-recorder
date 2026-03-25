@@ -11,6 +11,41 @@
       <h2 class="headline font-headline">Your past meetings</h2>
     </section>
 
+    <!-- Search bar -->
+    <div class="search-bar">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        placeholder="Search meetings..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        class="search-input"
+      />
+      <button class="filter-btn" (click)="showFilters = !showFilters" [class.active]="hasActiveFilters">
+        <span class="material-symbols-outlined">tune</span>
+      </button>
+    </div>
+
+    <!-- Filters panel -->
+    <div class="filters-panel" *ngIf="showFilters">
+      <div class="filter-row">
+        <label class="filter-label">From</label>
+        <input type="date" [(ngModel)]="dateFrom" (change)="onSearch()" class="filter-input" />
+      </div>
+      <div class="filter-row">
+        <label class="filter-label">To</label>
+        <input type="date" [(ngModel)]="dateTo" (change)="onSearch()" class="filter-input" />
+      </div>
+      <div class="filter-row" *ngIf="allTags.length > 0">
+        <label class="filter-label">Tag</label>
+        <select [(ngModel)]="filterTag" (change)="onSearch()" class="filter-input">
+          <option value="">All tags</option>
+          <option *ngFor="let t of allTags" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <button class="clear-filters-btn" (click)="clearFilters()" *ngIf="hasActiveFilters">Clear filters</button>
+    </div>
+
     <!-- Loading -->
     <div class="loading-state" *ngIf="loading">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -25,10 +60,10 @@
     <!-- Empty state -->
     <div class="empty-state" *ngIf="!loading && !error && meetings.length === 0">
       <div class="empty-icon-circle">
-        <span class="material-symbols-outlined empty-icon">folder_open</span>
+        <span class="material-symbols-outlined empty-icon">{{ searchQuery || hasActiveFilters ? 'search_off' : 'folder_open' }}</span>
       </div>
-      <h3 class="empty-title font-headline">No meetings yet</h3>
-      <p class="empty-desc">Your recorded meetings will appear here. Start your first meeting from the Home tab.</p>
+      <h3 class="empty-title font-headline">{{ searchQuery || hasActiveFilters ? 'No results found' : 'No meetings yet' }}</h3>
+      <p class="empty-desc">{{ searchQuery || hasActiveFilters ? 'Try different search terms or filters.' : 'Your recorded meetings will appear here. Start your first meeting from the Home tab.' }}</p>
     </div>
 
     <!-- Meeting list -->
@@ -50,6 +85,10 @@
           </button>
         </div>
         <p class="meeting-summary">{{ meeting.summary }}</p>
+        <!-- Tags -->
+        <div class="tags-row" *ngIf="meeting.tags?.length">
+          <span class="tag-chip" *ngFor="let tag of meeting.tags">{{ tag }}</span>
+        </div>
         <div class="meeting-meta">
           <span class="meta-chip" *ngIf="meeting.duration_seconds > 0">
             <span class="material-symbols-outlined meta-icon">timer</span>

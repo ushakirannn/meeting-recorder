@@ -47,9 +47,9 @@ async def upload_audio(
                 detail=f"File too large ({file_size_mb:.1f} MB). Max: {settings.max_file_size_mb} MB",
             )
 
-        # Step 1: Transcription + diarization via AssemblyAI
+        # Step 1: Transcription + diarization + summarization via AssemblyAI
         try:
-            transcript = await asyncio.to_thread(transcribe_audio, file_path)
+            result = await asyncio.to_thread(transcribe_audio, file_path)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
@@ -58,20 +58,15 @@ async def upload_audio(
         recording_path = os.path.join(RECORDINGS_DIR, audio_filename)
         shutil.copy2(file_path, recording_path)
 
-        # Step 3: Build response
-        summary = "Summarization disabled — add ANTHROPIC_API_KEY to enable."
-        key_points = ["Transcription and speaker diarization completed successfully."]
-        action_items = []
-
-        # Step 4: Save to database
+        # Step 3: Save to database
         from datetime import datetime
         title = f"Meeting — {datetime.now().strftime('%b %d, %Y %I:%M %p')}"
         meeting_id = save_meeting(
             title=title,
-            summary=summary,
-            key_points=key_points,
-            action_items=action_items,
-            transcript=transcript,
+            summary=result["summary"],
+            key_points=result["key_points"],
+            action_items=result["action_items"],
+            transcript=result["transcript"],
             duration_seconds=duration_seconds,
             audio_filename=audio_filename,
         )
@@ -79,10 +74,10 @@ async def upload_audio(
         return MeetingResponse(
             id=meeting_id,
             title=title,
-            summary=summary,
-            key_points=key_points,
-            action_items=action_items,
-            transcript=transcript,
+            summary=result["summary"],
+            key_points=result["key_points"],
+            action_items=result["action_items"],
+            transcript=result["transcript"],
         )
 
     finally:
