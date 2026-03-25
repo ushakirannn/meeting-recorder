@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ViewWillEnter } from '@ionic/angular';
 import { ApiService, MeetingRecord } from '../../services/api.service';
-import { MeetingStateService } from '../../services/meeting-state.service';
+import { MeetingStateService, FailedMeeting } from '../../services/meeting-state.service';
 
 @Component({
   selector: 'app-meetings',
@@ -12,6 +12,7 @@ import { MeetingStateService } from '../../services/meeting-state.service';
 })
 export class MeetingsPage implements ViewWillEnter {
   meetings: MeetingRecord[] = [];
+  failedMeetings: FailedMeeting[] = [];
   loading = true;
   error = '';
 
@@ -21,6 +22,7 @@ export class MeetingsPage implements ViewWillEnter {
   filterTag = '';
   showFilters = false;
   allTags: string[] = [];
+  retryingId: string | null = null;
 
   private searchTimeout: any;
 
@@ -33,6 +35,7 @@ export class MeetingsPage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     this.loadMeetings();
+    this.failedMeetings = this.meetingState.getFailedMeetings();
   }
 
   get hasActiveFilters(): boolean {
@@ -62,7 +65,6 @@ export class MeetingsPage implements ViewWillEnter {
         date_to: this.dateTo || undefined,
         tag: this.filterTag || undefined,
       });
-      // Collect all unique tags
       const tagSet = new Set<string>();
       this.meetings.forEach(m => m.tags?.forEach(t => tagSet.add(t)));
       this.allTags = Array.from(tagSet).sort();
@@ -72,6 +74,66 @@ export class MeetingsPage implements ViewWillEnter {
       this.loading = false;
     }
   }
+
+  // --- Failed meeting retry ---
+
+  async retryFailedMeeting(failed: FailedMeeting): Promise<void> {
+    this.retryingId = failed.id;
+    try {
+      const blob = this.meetingState.failedMeetingToBlob(failed);
+      const result = await this.apiService.uploadAudio(blob, failed.filename, failed.durationSeconds);
+
+      // Success — remove from failed list and reload
+      this.meetingState.removeFailedMeeting(failed.id);
+      this.failedMeetings = this.meetingState.getFailedMeetings();
+      await this.loadMeetings();
+
+      const alert = await this.alertCtrl.create({
+        header: 'Success',
+        message: 'Meeting processed successfully!',
+        buttons: [{
+          text: 'View',
+          handler: () => {
+            result.hasAudio = true;
+            this.meetingState.result = result;
+            this.router.navigate(['/results']);
+          }
+        }, { text: 'OK' }],
+      });
+      await alert.present();
+    } catch (e: any) {
+      const alert = await this.alertCtrl.create({
+        header: 'Retry Failed',
+        message: e?.error?.detail || 'Still unable to process. Your recording is safely saved locally.',
+        buttons: ['OK'],
+      });
+      await alert.present();
+    } finally {
+      this.retryingId = null;
+    }
+  }
+
+  async deleteFailedMeeting(failed: FailedMeeting, event: Event): Promise<void> {
+    event.stopPropagation();
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Failed Recording',
+      message: 'This will permanently delete the saved recording. Are you sure?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.meetingState.removeFailedMeeting(failed.id);
+            this.failedMeetings = this.meetingState.getFailedMeetings();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  // --- Regular meetings ---
 
   viewMeeting(meeting: MeetingRecord): void {
     this.meetingState.result = {
@@ -150,6 +212,13 @@ export class MeetingsPage implements ViewWillEnter {
     return d.toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
       hour: 'numeric', minute: '2-digit',
+    });
+  }
+
+  formatDateSimple(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
     });
   }
 }

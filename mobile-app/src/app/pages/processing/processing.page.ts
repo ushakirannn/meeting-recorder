@@ -95,39 +95,37 @@ export class ProcessingPage implements ViewDidEnter, OnDestroy {
       let message = 'Failed to process meeting audio.';
       let errorType = 'unknown';
       if (error?.status === 0) {
-        message = 'Cannot connect to server. Please check your network connection and ensure the backend is running.';
+        message = 'Cannot connect to server. Please check your network connection.';
         errorType = 'network';
       } else if (error?.error?.detail) {
         message = error.error.detail;
         errorType = 'server';
       } else if (error?.name === 'TimeoutError') {
-        message = 'Processing took too long. The audio file may be too large. Try a shorter recording.';
+        message = 'Processing took too long. The audio file may be too large.';
         errorType = 'timeout';
       }
 
-      const buttons: any[] = [
-        {
-          text: 'Go Back',
-          role: 'cancel',
-          handler: () => this.router.navigate(['/tabs/home']),
-        },
-      ];
-
-      // Offer retry for recoverable errors
-      if (errorType === 'network' || errorType === 'timeout') {
-        buttons.unshift({
-          text: 'Retry',
-          handler: () => {
-            this.retryCount = 0;
-            this.startProcessing();
-          },
-        });
-      }
+      // Save failed meeting locally so audio is never lost
+      await this.meetingState.saveFailedMeeting(
+        blob, filename, this.meetingState.durationSeconds, message
+      );
 
       const alert = await this.alertCtrl.create({
-        header: 'Processing Error',
-        message,
-        buttons,
+        header: 'Processing Failed',
+        message: message + '\n\nYour recording has been saved locally. You can retry from the Meetings tab.',
+        buttons: [
+          {
+            text: 'Retry Now',
+            handler: () => {
+              this.retryCount = 0;
+              this.startProcessing();
+            },
+          },
+          {
+            text: 'Go to Meetings',
+            handler: () => this.router.navigate(['/tabs/meetings']),
+          },
+        ],
       });
       await alert.present();
     }

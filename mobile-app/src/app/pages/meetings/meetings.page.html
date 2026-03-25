@@ -46,6 +46,45 @@
       <button class="clear-filters-btn" (click)="clearFilters()" *ngIf="hasActiveFilters">Clear filters</button>
     </div>
 
+    <!-- Failed meetings -->
+    <div class="failed-section" *ngIf="failedMeetings.length > 0">
+      <div class="failed-header">
+        <span class="material-symbols-outlined failed-header-icon">warning</span>
+        <h3 class="failed-title font-headline">Pending Uploads ({{ failedMeetings.length }})</h3>
+      </div>
+
+      <div class="failed-card" *ngFor="let failed of failedMeetings">
+        <div class="failed-card-top">
+          <div class="failed-icon-box">
+            <span class="material-symbols-outlined">cloud_off</span>
+          </div>
+          <div class="meeting-info">
+            <h4 class="meeting-title font-headline">{{ failed.filename }}</h4>
+            <p class="meeting-date">{{ formatDateSimple(failed.recordedAt) }}</p>
+          </div>
+          <button class="action-btn delete-btn" (click)="deleteFailedMeeting(failed, $event)">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+        <p class="failed-error">{{ failed.errorMessage }}</p>
+        <div class="failed-meta">
+          <span class="meta-chip" *ngIf="failed.durationSeconds > 0">
+            <span class="material-symbols-outlined meta-icon">timer</span>
+            {{ formatDuration(failed.durationSeconds) }}
+          </span>
+          <span class="meta-chip failed-chip">
+            <span class="material-symbols-outlined meta-icon">cloud_off</span>
+            Not uploaded
+          </span>
+        </div>
+        <button class="retry-upload-btn" (click)="retryFailedMeeting(failed)" [disabled]="retryingId === failed.id">
+          <ion-spinner name="crescent" *ngIf="retryingId === failed.id" class="retry-spinner"></ion-spinner>
+          <span class="material-symbols-outlined" *ngIf="retryingId !== failed.id">refresh</span>
+          <span>{{ retryingId === failed.id ? 'Processing...' : 'Retry Upload' }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Loading -->
     <div class="loading-state" *ngIf="loading">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -58,7 +97,7 @@
     </div>
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="!loading && !error && meetings.length === 0">
+    <div class="empty-state" *ngIf="!loading && !error && meetings.length === 0 && failedMeetings.length === 0">
       <div class="empty-icon-circle">
         <span class="material-symbols-outlined empty-icon">{{ searchQuery || hasActiveFilters ? 'search_off' : 'folder_open' }}</span>
       </div>
