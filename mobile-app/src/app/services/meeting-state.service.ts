@@ -7,9 +7,14 @@ export interface FailedMeeting {
   durationSeconds: number;
   recordedAt: string;
   errorMessage: string;
-  audioBase64: string;
   mimeType: string;
+  fileSize: number;
 }
+
+const DB_NAME = 'meeting_recorder_db';
+const STORE_META = 'failed_meetings_meta';
+const STORE_BLOBS = 'failed_meetings_blobs';
+const DB_VERSION = 1;
 
 @Injectable({ providedIn: 'root' })
 export class MeetingStateService {
@@ -25,59 +30,100 @@ export class MeetingStateService {
     this.result = null;
   }
 
-  // --- Failed meetings persistence ---
+  // --- IndexedDB for failed meetings ---
+
+  private openDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_META)) {
+          db.createObjectStore(STORE_META, { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains(STORE_BLOBS)) {
+          db.createObjectStore(STORE_BLOBS);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
 
   async saveFailedMeeting(blob: Blob, filename: string, durationSeconds: number, errorMessage: string): Promise<void> {
-    const base64 = await this.blobToBase64(blob);
-    const failed: FailedMeeting = {
-      id: Date.now().toString(),
+    const id = Date.now().toString();
+    const meta: FailedMeeting = {
+      id,
       filename,
       durationSeconds,
       recordedAt: new Date().toISOString(),
       errorMessage,
-      audioBase64: base64,
       mimeType: blob.type || 'audio/mp4',
+      fileSize: blob.size,
     };
 
-    const existing = this.getFailedMeetings();
-    existing.push(failed);
-    localStorage.setItem('failed_meetings', JSON.stringify(existing));
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction([STORE_META, STORE_BLOBS], 'readwrite');
+      tx.objectStore(STORE_META).put(meta);
+      tx.objectStore(STORE_BLOBS).put(blob, id);
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      db.close();
+    } catch (e) {
+      console.error('Failed to save to IndexedDB:', e);
+    }
   }
 
-  getFailedMeetings(): FailedMeeting[] {
+  async getFailedMeetings(): Promise<FailedMeeting[]> {
     try {
-      return JSON.parse(localStorage.getItem('failed_meetings') || '[]');
-    } catch {
+      const db = await this.openDB();
+      const tx = db.transaction(STORE_META, 'readonly');
+      const store = tx.objectStore(STORE_META);
+      const request = store.getAll();
+      const result = await new Promise<FailedMeeting[]>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      return result.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+    } catch (e) {
+      console.error('Failed to read IndexedDB:', e);
       return [];
     }
   }
 
-  removeFailedMeeting(id: string): void {
-    const meetings = this.getFailedMeetings().filter(m => m.id !== id);
-    localStorage.setItem('failed_meetings', JSON.stringify(meetings));
-  }
-
-  failedMeetingToBlob(meeting: FailedMeeting): Blob {
-    const byteCharacters = atob(meeting.audioBase64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+  async getFailedMeetingBlob(id: string): Promise<Blob | null> {
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction(STORE_BLOBS, 'readonly');
+      const request = tx.objectStore(STORE_BLOBS).get(id);
+      const result = await new Promise<Blob | null>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      return result;
+    } catch (e) {
+      console.error('Failed to get blob from IndexedDB:', e);
+      return null;
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: meeting.mimeType });
   }
 
-  private blobToBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove data URL prefix (e.g. "data:audio/mp4;base64,")
-        const base64 = result.split(',')[1] || result;
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+  async removeFailedMeeting(id: string): Promise<void> {
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction([STORE_META, STORE_BLOBS], 'readwrite');
+      tx.objectStore(STORE_META).delete(id);
+      tx.objectStore(STORE_BLOBS).delete(id);
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      db.close();
+    } catch (e) {
+      console.error('Failed to remove from IndexedDB:', e);
+    }
   }
 }

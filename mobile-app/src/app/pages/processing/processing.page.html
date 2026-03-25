@@ -16,6 +16,13 @@
     <h2 class="processing-title font-headline">{{ statusTitle }}</h2>
     <p class="processing-subtitle">{{ statusMessage }}</p>
 
+    <!-- Upload progress bar -->
+    <div class="upload-progress" *ngIf="currentStep === 1 && uploadProgress > 0 && uploadProgress < 100">
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+      </div>
+    </div>
+
     <!-- Step indicators -->
     <div class="steps">
       <div class="step" [class.active]="currentStep >= 1" [class.done]="currentStep > 1">
@@ -35,5 +42,16 @@
     </div>
 
     <p class="processing-hint">{{ elapsedTime }}s elapsed</p>
+
+    <!-- Long meeting reassurance -->
+    <p class="long-meeting-msg" *ngIf="longMeetingMessage">
+      <span class="material-symbols-outlined safe-icon">verified</span>
+      {{ longMeetingMessage }}
+    </p>
+
+    <!-- File size info -->
+    <p class="file-size-hint" *ngIf="fileSizeMB > 5">
+      File size: {{ fileSizeMB.toFixed(1) }} MB
+    </p>
   </div>
 </ion-content>

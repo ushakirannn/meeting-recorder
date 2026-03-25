@@ -88,13 +88,19 @@ export class RecordingPage {
   }
 
   private base64ToBlob(base64: string, mimeType: string): Blob {
+    // Chunked conversion to prevent memory crash on large files (60+ MB)
+    const CHUNK_SIZE = 65536; // 64KB chunks
     const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    const chunks: BlobPart[] = [];
+    for (let offset = 0; offset < byteCharacters.length; offset += CHUNK_SIZE) {
+      const slice = byteCharacters.slice(offset, offset + CHUNK_SIZE);
+      const byteNumbers = new Uint8Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      chunks.push(byteNumbers);
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
+    return new Blob(chunks, { type: mimeType });
   }
 
   private getExtension(mimeType: string): string {

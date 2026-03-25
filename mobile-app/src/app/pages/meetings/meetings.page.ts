@@ -33,9 +33,9 @@ export class MeetingsPage implements ViewWillEnter {
     private alertCtrl: AlertController
   ) {}
 
-  ionViewWillEnter(): void {
+  async ionViewWillEnter(): Promise<void> {
     this.loadMeetings();
-    this.failedMeetings = this.meetingState.getFailedMeetings();
+    this.failedMeetings = await this.meetingState.getFailedMeetings();
   }
 
   get hasActiveFilters(): boolean {
@@ -80,12 +80,14 @@ export class MeetingsPage implements ViewWillEnter {
   async retryFailedMeeting(failed: FailedMeeting): Promise<void> {
     this.retryingId = failed.id;
     try {
-      const blob = this.meetingState.failedMeetingToBlob(failed);
+      const blob = await this.meetingState.getFailedMeetingBlob(failed.id);
+      if (!blob) throw new Error('Recording not found in local storage.');
+
       const result = await this.apiService.uploadAudio(blob, failed.filename, failed.durationSeconds);
 
       // Success — remove from failed list and reload
-      this.meetingState.removeFailedMeeting(failed.id);
-      this.failedMeetings = this.meetingState.getFailedMeetings();
+      await this.meetingState.removeFailedMeeting(failed.id);
+      this.failedMeetings = await this.meetingState.getFailedMeetings();
       await this.loadMeetings();
 
       const alert = await this.alertCtrl.create({
@@ -123,9 +125,9 @@ export class MeetingsPage implements ViewWillEnter {
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
-            this.meetingState.removeFailedMeeting(failed.id);
-            this.failedMeetings = this.meetingState.getFailedMeetings();
+          handler: async () => {
+            await this.meetingState.removeFailedMeeting(failed.id);
+            this.failedMeetings = await this.meetingState.getFailedMeetings();
           },
         },
       ],

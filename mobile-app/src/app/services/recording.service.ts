@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { VoiceRecorder, RecordingData } from 'capacitor-voice-recorder';
 import { Capacitor } from '@capacitor/core';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
 @Injectable({ providedIn: 'root' })
 export class RecordingService {
   isRecording = false;
   elapsedSeconds = 0;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
-  private keepAwakeInterval: ReturnType<typeof setInterval> | null = null;
 
   async startRecording(): Promise<void> {
     const permission = await VoiceRecorder.requestAudioRecordingPermission();
@@ -29,11 +29,11 @@ export class RecordingService {
       this.elapsedSeconds++;
     }, 1000);
 
-    // Keep the app alive during recording (prevents sleep on some devices)
-    if (Capacitor.isNativePlatform()) {
-      this.keepAwakeInterval = setInterval(() => {
-        // Periodic check to ensure recording is still active
-      }, 30000);
+    // Keep screen awake during recording (prevents device sleep)
+    try {
+      await KeepAwake.keepAwake();
+    } catch (e) {
+      // Non-critical — recording still works without it
     }
   }
 
@@ -42,11 +42,14 @@ export class RecordingService {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
-    if (this.keepAwakeInterval) {
-      clearInterval(this.keepAwakeInterval);
-      this.keepAwakeInterval = null;
-    }
     this.isRecording = false;
+
+    // Release wake lock
+    try {
+      await KeepAwake.allowSleep();
+    } catch (e) {
+      // Non-critical
+    }
 
     // Minimum recording duration check
     if (this.elapsedSeconds < 2) {

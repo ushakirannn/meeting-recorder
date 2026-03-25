@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpEventType, HttpEvent } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { firstValueFrom, timeout } from 'rxjs';
+import { firstValueFrom, timeout, Observable, Subject, lastValueFrom, filter, map, tap } from 'rxjs';
 
 export interface MeetingResult {
   id?: number;
@@ -42,16 +42,34 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  uploadProgress$ = new Subject<number>();
+
   async uploadAudio(audioBlob: Blob, filename: string, durationSeconds: number = 0): Promise<MeetingResult> {
     const formData = new FormData();
     formData.append('file', audioBlob, filename);
     formData.append('duration_seconds', durationSeconds.toString());
 
-    return firstValueFrom(
-      this.http
-        .post<MeetingResult>(`${this.apiUrl}/upload-audio`, formData)
-        .pipe(timeout(300000))
-    );
+    // Dynamic timeout: 1 min per 10 MB, min 5 min, max 30 min
+    const sizeMB = audioBlob.size / (1024 * 1024);
+    const timeoutMs = Math.min(1800000, Math.max(300000, sizeMB * 6000));
+
+    return new Promise<MeetingResult>((resolve, reject) => {
+      this.http.post(`${this.apiUrl}/upload-audio`, formData, {
+        reportProgress: true,
+        observe: 'events',
+      }).pipe(timeout(timeoutMs)).subscribe({
+        next: (event: HttpEvent<any>) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            const pct = Math.round((event.loaded / event.total) * 100);
+            this.uploadProgress$.next(pct);
+          } else if (event.type === HttpEventType.Response) {
+            this.uploadProgress$.next(100);
+            resolve(event.body as MeetingResult);
+          }
+        },
+        error: (err) => reject(err),
+      });
+    });
   }
 
   async getMeetings(filters?: MeetingFilters): Promise<MeetingRecord[]> {

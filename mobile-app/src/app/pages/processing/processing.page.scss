@@ -147,7 +147,53 @@
   }
 }
 
+// Upload progress
+.upload-progress {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e3e0f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4e45e4, #6760fd);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
 .processing-hint {
   font-size: 0.78rem;
   color: #707b90;
+}
+
+.long-meeting-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: #ecfdf5;
+  color: #059669;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  max-width: 300px;
+  text-align: left;
+}
+
+.safe-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.file-size-hint {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: #a7b2c9;
 }
