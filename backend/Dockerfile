@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE ${PORT:-8000}
 
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 300 --limit-max-request-size 262144000
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 300
